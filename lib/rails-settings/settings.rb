@@ -2,9 +2,9 @@ module RailsSettings
   class Settings < ActiveRecord::Base
 
     self.table_name = 'settings'
-    attr_accessible :var
 
-    class SettingNotFound < RuntimeError; end
+    class SettingNotFound < StandardError; end
+    class NamespaceNotProvided < StandardError; end
 
     cattr_accessor :defaults
     @@defaults = {}.with_indifferent_access
@@ -28,16 +28,18 @@ module RailsSettings
 
       #retrieve a value
       else
-        self[method_name]
+        var_namespace = args.first
+        raise NamespaceNotProvided if var_namespace.nil?
+        self[var_namespace => method_name]
 
       end
     end
 
     #destroy the specified settings record
-    def self.destroy(var_name)
+    def self.destroy(var_name, var_namespace)
       var_name = var_name.to_s
-      if self[var_name]
-        object(var_name).destroy
+      if self[var_namespace => var_name]
+        object(var_name, var_namespace).destroy
         true
       else
         raise SettingNotFound, "Setting variable \"#{var_name}\" not found"
@@ -57,21 +59,28 @@ module RailsSettings
     end
 
     #get a setting value by [] notation
-    def self.[](var_name)
-      if var = object(var_name)
-        var.value
-      elsif @@defaults[var_name.to_s]
-        @@defaults[var_name.to_s]
+    def self.[](var_args)
+      if var_args.is_a?(String) && @@defaults[var_args.to_s]
+        @@defaults[var_args.to_s]
       else
-        nil
+        raise NamespaceNotProvided unless var_args.is_a?(Hash)
+        var_name = var_args.values.first
+        var_namespace = var_args.keys.first
+        if var = object(var_name, var_namespace)
+          var.value
+        else
+          nil
+        end
       end
     end
 
     #set a setting value by [] notation
-    def self.[]=(var_name, value)
-      var_name = var_name.to_s
+    def self.[]=(var_hash, value)
+      raise NamespaceNotProvided unless var_hash.is_a?(Hash)
+      var_name = var_hash.values.first
+      var_namespace = var_hash.keys.first
 
-      record = object(var_name) || thing_scoped.new(:var => var_name)
+      record = object(var_name, var_namespace) || thing_scoped.new(:var => var_name, :namespace => var_namespace)
       record.value = value
       record.save!
 
@@ -90,8 +99,8 @@ module RailsSettings
       new_value
     end
 
-    def self.object(var_name)
-      thing_scoped.where(:var => var_name.to_s).first
+    def self.object(var_name, var_namespace)
+      thing_scoped.where(:var => var_name.to_s, :namespace => var_namespace.to_s).first
     end
 
     #get the value field, YAML decoded
