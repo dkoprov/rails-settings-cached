@@ -30,8 +30,7 @@ module RailsSettings
       else
         var_namespace = args.first
         raise NamespaceNotProvided if var_namespace.nil?
-        self[var_namespace => method_name]
-
+        self[var_namespace.to_s => method_name]
       end
     end
 
