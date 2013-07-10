@@ -80,7 +80,7 @@ module RailsSettings
       var_name = var_hash.values.first
       var_namespace = var_hash.keys.first
 
-      record = object(var_name, var_namespace) || thing_scoped.new(:var => var_name, :namespace => var_namespace)
+      record = object(var_name, var_namespace) || thing_scoped.new{|ts| ts.var=var_name; ts.namespace=var_namespace}
       record.value = value
       record.save!
 
