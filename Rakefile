@@ -1,6 +1,9 @@
 require 'rake'
-require File.expand_path('../spec/spec_helper', __FILE__)
+require 'rspec/core/rake_task'
 
-task :default do
-  system 'bundle exec rspec spec'
+desc 'Run specs'
+RSpec::Core::RakeTask.new do |t|
+    t.pattern = './spec/**/*_spec.rb'
 end
+
+task :default => :spec
