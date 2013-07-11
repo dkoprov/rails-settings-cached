@@ -28,9 +28,13 @@ module RailsSettings
 
       #retrieve a value
       else
-        var_namespace = args.first
-        raise NamespaceNotProvided if var_namespace.nil?
-        self[var_namespace.to_s => method_name]
+        if @@defaults[method_name]
+          @@defaults[method_name]
+        else
+          var_namespace = args.first
+          raise NamespaceNotProvided if var_namespace.nil?
+          self[var_namespace.to_s => method_name]
+        end
       end
     end
 
@@ -60,17 +64,13 @@ module RailsSettings
 
     #get a setting value by [] notation
     def self.[](var_args)
-      if var_args.is_a?(String) && @@defaults[var_args.to_s]
-        @@defaults[var_args.to_s]
+      raise NamespaceNotProvided unless var_args.is_a?(Hash)
+      var_name = var_args.values.first
+      var_namespace = var_args.keys.first
+      if var = object(var_name, var_namespace)
+        var.value
       else
-        raise NamespaceNotProvided unless var_args.is_a?(Hash)
-        var_name = var_args.values.first
-        var_namespace = var_args.keys.first
-        if var = object(var_name, var_namespace)
-          var.value
-        else
-          nil
-        end
+        nil
       end
     end
 
@@ -87,14 +87,14 @@ module RailsSettings
       value
     end
 
-    def self.merge!(var_name, hash_value)
+    def self.merge!(var_name, var_namespace, hash_value)
       raise ArgumentError unless hash_value.is_a?(Hash)
 
-      old_value = self[var_name] || {}
+      old_value = self[var_namespace => var_name] || {}
       raise TypeError, "Existing value is not a hash, can't merge!" unless old_value.is_a?(Hash)
 
       new_value = old_value.merge(hash_value)
-      self[var_name] = new_value if new_value != old_value
+      self[var_namespace => var_name] = new_value if new_value != old_value
 
       new_value
     end
