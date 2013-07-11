@@ -12,90 +12,89 @@ describe RailsSettings do
   end
 
   describe "Implementation" do
-    it "can not save setting without namespace" do
-      ->{Setting[:foo]}.should raise_error Setting::NamespaceNotProvided
+    context 'settings life cycle' do
+      it "can not save setting without namespace" do
+        ->{Setting[:foo]}.should raise_error Setting::NamespaceNotProvided
+      end
+
+      it "can work with String value" do
+        Setting[:en => :foo] = @str
+        Setting.foo(:en).should == @str
+      end
+
+      it "can work with Array value" do
+        Setting[:en => :items] = @items
+        Setting.items(:en).should == @items
+        Setting.items(:en).class.should == @items.class
+      end
+
+      it "can work with DateTime value" do
+        Setting[:be => :created_on] = @tm
+        Setting.created_on(:be).should == @tm
+      end
+
+      it "can work with Hash value" do
+        Setting[:en => :hashes] = @hash
+        Setting.hashes(:en).should == @hash
+        Setting.hashes(:en).class.should == @hash.class
+      end
+
+      it "can work with Merge to merge a Hash" do
+        Setting.merge!(:hashes, :en, :id => 32)
+        Setting.hashes(:en).should == @merged_hash
+      end
+
+      it "can read old data" do
+        Setting.foo(:en).should == @str
+        Setting.items(:en).should == @items
+        Setting.created_on(:be).should == @tm
+        Setting.hashes(:en).should == @merged_hash
+      end
+
+      it "can list all entries by Setting.all" do
+        Setting.all.count.should == 4
+        Setting.all(:be).count.should == 1
+      end
+
+      it "can destroy a value" do
+        Setting.destroy(:foo, :en)
+        Setting.foo(:en).should == nil
+        Setting.all.count.should == 3
+      end
     end
 
-    it "can work with String value" do
-      Setting[:en => :foo] = @str
-      Setting.foo(:en).should == @str
-    end
+    context 'working with default values' do
+      it "sets default value | takes it if no value exists for the namespace" do
+        Setting.defaults[:bar] = @bar
+        Setting.bar(:en).should == @bar
+      end
 
-    it "can work with Array value" do
-      Setting[:en => :items] = @items
-      Setting.items(:en).should == @items
-      Setting.items(:en).class.should == @items.class
-    end
+      it "sets default value | throws an error if no namespace provided" do
+        Setting.defaults[:bar] = @bar
+        ->{Setting.bar}.should raise_error Setting::NamespaceNotProvided
+      end
 
-    it "can work with DateTime value" do
-      Setting[:be => :created_on] = @tm
-      Setting.created_on(:be).should == @tm
-    end
+      it "sets default | takes specialised value for the namespace" do
+        Setting.defaults[:bar] = @bar
+        Setting[:en => :bar] = @str
+        Setting.bar(:en).should == @str
+        Setting.bar(:be).should == @bar
+      end
 
-    it "can work with Hash value" do
-      Setting[:en => :hashes] = @hash
-      Setting.hashes(:en).should == @hash
-      Setting.hashes(:en).class.should == @hash.class
-    end
+      it "can use default value, when the setting it cached with nil value" do
+        Setting.has_cached_nil_key(:en)
+        Setting.defaults[:has_cached_nil_key] = "123"
+        Setting.has_cached_nil_key(:en).should == "123"
+      end
 
-    it "can work with namespace key" do
-      Setting['en' => 'config.color'] = :red
-      Setting['en' => 'config.limit'] = 100
-    end
-
-    it "can read last give namespace key's value" do
-      Setting['en' => 'config.color'].should == :red
-      Setting['en' => 'config.limit'].should == 100
-    end
-
-    it "can work with Merge to merge a Hash" do
-      Setting.merge!(:hashes, :en, :id => 32)
-      Setting.hashes(:en).should == @merged_hash
-    end
-
-    it "can read old data" do
-      Setting.foo(:en).should == @str
-      Setting.items(:en).should == @items
-      Setting.created_on(:be).should == @tm
-      Setting.hashes(:en).should == @merged_hash
-    end
-
-    it "can list all entries by Setting.all" do
-      Setting.all.count.should == 6
-      Setting.all(:be).count.should == 1
-    end
-
-    it "can destroy a value" do
-      Setting.destroy(:foo, :en)
-      Setting.foo(:en).should == nil
-      Setting.all.count.should == 5
-    end
-
-    it "can work with default value" do
-      Setting.defaults[:bar] = @bar
-      Setting.bar.should == @bar
-    end
-
-    it "preferes namespased param over default" do
-      Setting.defaults[:bar] = @bar
-      Setting[:en => :bar] = @foo
-      Setting.bar.should == @bar
-      Setting.bar(:en).should == @foo
-    end
-
-    it "can use default value, when the setting it cached with nil value" do
-      Setting.has_cached_nil_key(:en)
-      Setting.defaults[:has_cached_nil_key] = "123"
-      Setting.has_cached_nil_key.should == "123"
-    end
-
-    it "#save_default" do
-      Setting.test_save_default_key(:en)
-      Setting.save_default(:test_save_default_key, :en, "321")
-      Setting.where(:var => "test_save_default_key", :namespace => "en").count.should == 1
-      Setting.test_save_default_key(:en).should == "321"
-      Setting.save_default(:test_save_default_key, :en, "3211")
-      Setting.test_save_default_key(:en).should == "321"
+      it "#save_default" do
+        Setting.test_save_default_key(:en)
+        Setting.save_default(:test_save_default_key, :en, "321")
+        Setting.where(:var => "test_save_default_key", :namespace => "en").count.should == 1
+        Setting.test_save_default_key(:en).should == "321"
+        Setting.save_default(:test_save_default_key, :en, "3211")
+        Setting.test_save_default_key(:en).should == "321"
+      end
     end
   end
 

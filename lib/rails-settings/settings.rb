@@ -28,13 +28,9 @@ module RailsSettings
 
       #retrieve a value
       else
-        if args.empty? && @@defaults[method_name]
-          @@defaults[method_name]
-        else
-          var_namespace = args.first
-          raise NamespaceNotProvided if var_namespace.nil?
-          self[var_namespace.to_s => method_name]
-        end
+        var_namespace = args.first
+        raise NamespaceNotProvided if var_namespace.nil?
+        self[var_namespace.to_s => method_name]
       end
     end
 
@@ -69,6 +65,8 @@ module RailsSettings
       var_namespace = var_args.keys.first
       if var = object(var_name, var_namespace)
         var.value
+      elsif @@defaults[var_name]
+        @@defaults[var_name]
       else
         nil
       end

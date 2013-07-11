@@ -15,6 +15,7 @@ module RailsSettings
       obj = Rails.cache.fetch("settings:#{var_name}, namespace:#{var_namespace}") {
         super(var_namespace => var_name)
       }
+      obj || @@defaults[var_name]
     end
 
     def self.save_default(key,key_namespace,value)
