@@ -37,18 +37,19 @@ module RailsSettings
     #destroy the specified settings record
     def self.destroy(var_name, var_namespace)
       var_name = var_name.to_s
+      var_namespace = var_namespace.to_s
       if self[var_namespace => var_name]
         object(var_name, var_namespace).destroy
         true
       else
-        raise SettingNotFound, "Setting variable \"#{var_name}\" not found"
+        raise SettingNotFound, "Setting variable \"#{var_name}\" with namespace \"#{var_namespace}\" is not found"
       end
     end
 
-    #retrieve all settings as a hash (optionally starting with a given namespace)
-    def self.all(starting_with=nil)
-      options = starting_with ? { :conditions => "var LIKE '#{starting_with}%'"} : {}
-      vars = thing_scoped.find(:all, {:select => 'var, value'}.merge(options))
+    #retrieve all settings as a hash (optionally with a given namespace)
+    def self.all(var_namespace=nil)
+      vars = thing_scoped.select('var, value')
+      vars = vars.where(namespace: var_namespace.to_s) if var_namespace.present?
 
       result = {}
       vars.each do |record|
