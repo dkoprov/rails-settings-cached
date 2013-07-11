@@ -6,10 +6,11 @@ Think of it like a global Hash stored in you database, that uses simple ActiveRe
 like methods for manipulation.  Keep track of any global setting that you dont want
 to hard code into your rails app.  You can store any kind of object.  Strings, numbers,
 arrays, or any object. Ported to Rails 3!
+In this for namespaces are added to the field to separate settings among, say, locales.
 
 ## Status
 
-[![CI Status](https://secure.travis-ci.org/huacnlee/rails-settings-cached.png)](http://travis-ci.org/huacnlee/rails-settings-cached)
+[![CI Status](https://secure.travis-ci.org/dkoprov/rails-settings-cached.png)](http://travis-ci.org/dkoprov/rails-settings-cached)
 
 ## Setup
 
