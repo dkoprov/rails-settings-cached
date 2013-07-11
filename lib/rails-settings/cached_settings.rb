@@ -1,23 +1,27 @@
 module RailsSettings
   class CachedSettings < Settings
-    after_update :rewrite_cache    
+    after_update :rewrite_cache
     after_create :rewrite_cache
     def rewrite_cache
-      Rails.cache.write("settings:#{self.var}", self.value)
+      Rails.cache.write("settings:#{self.var}, namespace:#{self.namespace}", self.value)
     end
-    
-    after_destroy { |record| Rails.cache.delete("settings:#{record.var}") }
-    
-    def self.[](var_name)
-      obj = Rails.cache.fetch("settings:#{var_name}") {
-        super(var_name)
+
+    after_destroy { |record| Rails.cache.delete("settings:#{record.var}, namespace:#{record.namespace}") }
+
+    def self.[](var_args)
+      raise Settings::NamespaceNotProvided unless var_args.is_a?(Hash)
+      var_name = var_args.values.first
+      var_namespace = var_args.keys.first
+      obj = Rails.cache.fetch("settings:#{var_name}, namespace:#{var_namespace}") {
+        super(var_namespace => var_name)
       }
-      obj || @@defaults[var_name.to_s]
-    end    
-    
-    def self.save_default(key,value)
-      if self.send(key) == nil
-        self.send("#{key}=",value)
+    end
+
+    def self.save_default(key,key_namespace,value)
+      key_namespace = key_namespace.to_s
+      key = key.to_s
+      if self[key_namespace => key] == nil
+        self[key_namespace => key] = value
       end
     end
   end
