@@ -13,7 +13,7 @@ describe RailsSettings do
 
   describe "Implementation" do
     it "can not save setting without namespace" do
-      ->{Setting[:foo]}.should raise_error(Settings::NamespaceNotProvided)
+      ->{Setting[:foo]}.should raise_error Setting::NamespaceNotProvided
     end
 
     it "can work with String value" do
@@ -49,8 +49,8 @@ describe RailsSettings do
     end
 
     it "can work with Merge to merge a Hash" do
-      Setting.merge!(:hashes, :id => 32)
-      Setting.hashes.should == @merged_hash
+      Setting.merge!(:hashes, :en, :id => 32)
+      Setting.hashes(:en).should == @merged_hash
     end
 
     it "can read old data" do
@@ -77,18 +77,18 @@ describe RailsSettings do
     end
 
     it "can use default value, when the setting it cached with nil value" do
-      Setting.has_cached_nil_key
+      Setting.has_cached_nil_key(:en)
       Setting.defaults[:has_cached_nil_key] = "123"
       Setting.has_cached_nil_key.should == "123"
     end
 
     it "#save_default" do
-      Setting.test_save_default_key
-      Setting.save_default(:test_save_default_key, "321")
-      Setting.where(:var => "test_save_default_key").count.should == 1
-      Setting.test_save_default_key.should == "321"
-      Setting.save_default(:test_save_default_key, "3211")
-      Setting.test_save_default_key.should == "321"
+      Setting.test_save_default_key(:en)
+      Setting.save_default(:test_save_default_key, :en, "321")
+      Setting.where(:var => "test_save_default_key", :namespace => "en").count.should == 1
+      Setting.test_save_default_key(:en).should == "321"
+      Setting.save_default(:test_save_default_key, :en, "3211")
+      Setting.test_save_default_key(:en).should == "321"
     end
   end
 

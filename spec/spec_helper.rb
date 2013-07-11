@@ -1,7 +1,6 @@
-require 'rubygems'
-require "rspec"
+require "rubygems"
 require "active_record"
-require 'active_support'
+require "active_support"
 
 $LOAD_PATH.unshift(File.dirname(__FILE__))
 $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'rails'))
@@ -21,6 +20,7 @@ ActiveRecord::Base.configurations = true
 ActiveRecord::Schema.verbose = false
 ActiveRecord::Schema.define(:version => 1) do
   create_table :settings do |t|
+    t.string :namespace, :null => false
     t.string :var, :null => false
     t.text :value
     t.integer :thing_id
