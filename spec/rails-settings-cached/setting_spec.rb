@@ -76,6 +76,13 @@ describe RailsSettings do
       Setting.bar.should == @bar
     end
 
+    it "preferes namespased param over default" do
+      Setting.defaults[:bar] = @bar
+      Setting[:en => :bar] = @foo
+      Setting.bar.should == @bar
+      Setting.bar(:en).should == @foo
+    end
+
     it "can use default value, when the setting it cached with nil value" do
       Setting.has_cached_nil_key(:en)
       Setting.defaults[:has_cached_nil_key] = "123"

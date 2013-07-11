@@ -28,7 +28,7 @@ module RailsSettings
 
       #retrieve a value
       else
-        if @@defaults[method_name]
+        if args.empty? && @@defaults[method_name]
           @@defaults[method_name]
         else
           var_namespace = args.first
