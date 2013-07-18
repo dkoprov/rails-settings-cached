@@ -35,11 +35,11 @@ module RailsSettings
     end
 
     #destroy the specified settings record
-    def self.destroy(var_name, var_namespace)
-      var_name = var_name.to_s
+    def self.destroy(var_namespace, var_name)
       var_namespace = var_namespace.to_s
+      var_name = var_name.to_s
       if self[var_namespace => var_name]
-        object(var_name, var_namespace).destroy
+        object(var_namespace, var_name).destroy
         true
       else
         raise SettingNotFound, "Setting variable \"#{var_name}\" with namespace \"#{var_namespace}\" is not found"
@@ -63,7 +63,7 @@ module RailsSettings
       raise NamespaceNotProvided unless var_args.is_a?(Hash)
       var_name = var_args.values.first
       var_namespace = var_args.keys.first
-      if var = object(var_name, var_namespace)
+      if var = object(var_namespace, var_name)
         var.value
       elsif @@defaults[var_name]
         @@defaults[var_name]
@@ -75,17 +75,17 @@ module RailsSettings
     #set a setting value by [] notation
     def self.[]=(var_hash, value)
       raise NamespaceNotProvided unless var_hash.is_a?(Hash)
-      var_name = var_hash.values.first
-      var_namespace = var_hash.keys.first
+      var_namespace = var_hash.keys.first.to_s
+      var_name = var_hash.values.first.to_s
 
-      record = object(var_name, var_namespace) || thing_scoped.new{|ts| ts.var=var_name; ts.namespace=var_namespace}
+      record = object(var_namespace, var_name) || thing_scoped.new{|ts| ts.namespace=var_namespace; ts.var=var_name}
       record.value = value
       record.save!
 
       value
     end
 
-    def self.merge!(var_name, var_namespace, hash_value)
+    def self.merge!(var_namespace, var_name, hash_value)
       raise ArgumentError unless hash_value.is_a?(Hash)
 
       old_value = self[var_namespace => var_name] || {}
@@ -97,8 +97,8 @@ module RailsSettings
       new_value
     end
 
-    def self.object(var_name, var_namespace)
-      thing_scoped.where(:var => var_name.to_s, :namespace => var_namespace.to_s).first
+    def self.object(var_namespace, var_name)
+      thing_scoped.where(:namespace => var_namespace.to_s, :var => var_name.to_s).first
     end
 
     #get the value field, YAML decoded
@@ -114,7 +114,5 @@ module RailsSettings
     def self.thing_scoped
       self.scoped_by_thing_type_and_thing_id(nil, nil)
     end
-
-
   end
 end

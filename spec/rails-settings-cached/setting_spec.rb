@@ -40,7 +40,7 @@ describe RailsSettings do
       end
 
       it "can work with Merge to merge a Hash" do
-        Setting.merge!(:hashes, :en, :id => 32)
+        Setting.merge!(:en, :hashes, :id => 32)
         Setting.hashes(:en).should == @merged_hash
       end
 
@@ -57,7 +57,7 @@ describe RailsSettings do
       end
 
       it "can destroy a value" do
-        Setting.destroy(:foo, :en)
+        Setting.destroy(:en, :foo)
         Setting.foo(:en).should == nil
         Setting.all.count.should == 3
       end
@@ -89,10 +89,10 @@ describe RailsSettings do
 
       it "#save_default" do
         Setting.test_save_default_key(:en)
-        Setting.save_default(:test_save_default_key, :en, "321")
+        Setting.save_default(:en, :test_save_default_key, "321")
         Setting.where(:var => "test_save_default_key", :namespace => "en").count.should == 1
         Setting.test_save_default_key(:en).should == "321"
-        Setting.save_default(:test_save_default_key, :en, "3211")
+        Setting.save_default(:en, :test_save_default_key, "3211")
         Setting.test_save_default_key(:en).should == "321"
       end
     end
