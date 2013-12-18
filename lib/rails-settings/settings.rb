@@ -14,6 +14,12 @@ module RailsSettings
       @@defaults = SettingsDefaults::DEFAULTS.with_indifferent_access
     end
 
+    class << self
+      # for ActiveRecord 4 compatibility (method `where` is delegated to `all`)
+      query_results_method_name = ActiveRecord::VERSION::MAJOR >= 4 ? :all : :scoped
+      alias_method :original_all, query_results_method_name
+    end
+
     #get or set a variable with the variable as the called method
     def self.method_missing(method, *args)
       method_name = method.to_s
@@ -112,7 +118,7 @@ module RailsSettings
     end
 
     def self.thing_scoped
-      self.scoped_by_thing_type_and_thing_id(nil, nil)
+      original_all.where(thing_type: nil, thing_id: nil)
     end
   end
 end
