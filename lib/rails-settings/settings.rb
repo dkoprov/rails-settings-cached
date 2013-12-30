@@ -18,6 +18,8 @@ module RailsSettings
       # for ActiveRecord 4 compatibility (method `where` is delegated to `all`)
       query_results_method_name = ActiveRecord::VERSION::MAJOR >= 4 ? :all : :scoped
       alias_method :original_all, query_results_method_name
+
+      delegate :pluck, :update_all, :where, :destroy_all, to: :original_all, allow_nil: true
     end
 
     #get or set a variable with the variable as the called method
@@ -118,7 +120,7 @@ module RailsSettings
     end
 
     def self.thing_scoped
-      original_all.where(thing_type: nil, thing_id: nil)
+      where(thing_type: nil, thing_id: nil)
     end
   end
 end
