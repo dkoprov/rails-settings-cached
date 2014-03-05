@@ -63,7 +63,14 @@ module RailsSettings
       vars.each do |record|
         result[record.var] = record.value
       end
-      result.with_indifferent_access
+      result.with_indifferent_access.tap do |hash|
+        hash.instance_eval do
+          @ar_relation = vars
+          def method_missing(*args)
+            @ar_relation.send(*args)
+          end
+        end
+      end
     end
 
     #get a setting value by [] notation
